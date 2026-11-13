@@ -27,7 +27,6 @@ import kotlin.coroutines.resume
  */
 class PleosPlatform(activity: Activity) : CarPlatform {
     override val description = "Pleos Connect · FusedLocation · NaviHelper · 음성은 Android 표준 API"
-    override val waypointActionLabel = "내비 경유지로 삽입"
     override val extraPermissions = listOf(FUSED_LOCATION, NAVI_ROUTE_SEARCH)
 
     private val context = activity.applicationContext

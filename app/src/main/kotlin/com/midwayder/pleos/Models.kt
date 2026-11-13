@@ -55,17 +55,17 @@ data class Stop(
         return "${if (s < 0) "−" else "+"}${abs(s) / 60}분 ${abs(s) % 60}초 · ${if (m < 0) "−" else "+"}${abs(m)}m"
     }
 
-    /** 지도 옆 순위 목록용 짧은 표기: "1분 20초 추가", "추가 없음", "약 2~4분 추가". */
+    /** 순위 목록 오른쪽에 크게 쓰는 추가 시간: "+1분 20초", "+0분", "+2~4분". */
     fun shortCost(tier: String?): String {
         val s = extraDurationS.coerceIn(0.0, 1_000_000.0).roundToInt()
         val m = s / 60
         val sec = s % 60
-        if (tier == "simple") return if (m == 0) "약 1분 이내 추가" else "약 ${m}~${m + 2}분 추가"
+        if (tier == "simple") return if (m == 0) "+1분 이내" else "+${m}~${m + 2}분"
         return when {
-            s == 0 -> "추가 없음"
-            m == 0 -> "${sec}초 추가"
-            sec == 0 -> "${m}분 추가"
-            else -> "${m}분 ${sec}초 추가"
+            s == 0 -> "+0분"
+            m == 0 -> "+${sec}초"
+            sec == 0 -> "+${m}분"
+            else -> "+${m}분 ${sec}초"
         }
     }
 

@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Pleos 시스템 화면 톤(A 밝은 화면 / C 다크). 앱 이름 머리글은 두지 않는다(상태바·독에 이미 앱이 보임). -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background">
 
-    <!-- 말하기 화면: 목적지 / 경유지. 질문 한 줄, 마이크, 인식된 말. -->
+    <!-- 말하기 화면: 목적지 / 경유지. 질문 한 줄, 마이크, 듣는 중 상태, 인식된 말. -->
     <LinearLayout
         android:id="@+id/promptView"
         android:layout_width="match_parent"
@@ -18,27 +19,40 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/text"
-            android:textSize="36sp"
+            android:textSize="40sp"
             android:textStyle="bold"
             android:gravity="center" />
 
-        <Button
+        <ImageButton
             android:id="@+id/mic"
-            style="@style/Widget.MidWayDerPleos.MicRound"
-            android:layout_width="88dp"
-            android:layout_height="88dp"
-            android:layout_marginTop="22dp"
-            android:text="🎤"
+            style="@style/Widget.MidWayDerPleos.Mic"
+            android:layout_width="104dp"
+            android:layout_height="104dp"
+            android:layout_marginTop="32dp"
+            android:src="@drawable/ic_mic"
+            android:scaleType="fitCenter"
+            android:padding="30dp"
             android:contentDescription="@string/mic" />
+
+        <TextView
+            android:id="@+id/listenState"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="@string/listening"
+            android:textColor="@color/accent"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:visibility="invisible" />
 
         <TextView
             android:id="@+id/transcript"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="12dp"
             android:gravity="center"
-            android:textColor="@color/accent"
-            android:textSize="24sp"
+            android:textColor="@color/text_secondary"
+            android:textSize="22sp"
             android:maxLines="2"
             android:ellipsize="end" />
     </LinearLayout>
@@ -49,52 +63,53 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:paddingStart="18dp"
-        android:paddingEnd="70dp"
-        android:paddingTop="12dp"
-        android:paddingBottom="18dp"
+        android:paddingStart="48dp"
+        android:paddingEnd="48dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="16dp"
         android:visibility="gone">
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/listTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:layout_marginEnd="140dp"
+            android:textColor="@color/text"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end" />
 
-            <TextView
-                android:id="@+id/listTitle"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:textColor="@color/text"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:maxLines="1"
-                android:ellipsize="end" />
-
-            <Button
-                android:id="@+id/listMic"
-                style="@style/Widget.MidWayDerPleos.MicRound"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:layout_marginStart="8dp"
-                android:text="🎤"
-                android:textSize="18sp"
-                android:contentDescription="@string/mic" />
-        </LinearLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/say_number"
+            android:textColor="@color/text_secondary"
+            android:textSize="17sp" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/list"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_marginTop="10dp"
-            android:clipToPadding="false"
-            android:paddingBottom="4dp"
+            android:layout_marginTop="16dp"
             android:scrollbars="vertical" />
+
+        <ImageButton
+            android:id="@+id/listMic"
+            style="@style/Widget.MidWayDerPleos.Mic"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_gravity="end"
+            android:layout_marginTop="12dp"
+            android:src="@drawable/ic_mic"
+            android:scaleType="fitCenter"
+            android:padding="18dp"
+            android:contentDescription="@string/mic" />
     </LinearLayout>
 
-    <!-- 지도 화면: 왼쪽 순위 목록, 오른쪽 지도 -->
+    <!-- 지도 화면: 왼쪽 경유지 순위(면), 오른쪽 지도 -->
     <LinearLayout
         android:id="@+id/mapScreen"
         android:layout_width="match_parent"
@@ -102,21 +117,82 @@
         android:orientation="horizontal"
         android:visibility="gone">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/stops"
+        <LinearLayout
             android:layout_width="0dp"
-            android:layout_weight="0.36"
+            android:layout_weight="0.4"
             android:layout_height="match_parent"
-            android:paddingStart="14dp"
-            android:paddingEnd="8dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:clipToPadding="false"
-            android:scrollbars="vertical" />
+            android:orientation="vertical"
+            android:background="@color/surface"
+            android:paddingTop="24dp"
+            android:paddingBottom="20dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="24dp"
+                android:text="@string/stops_title"
+                android:textColor="@color/text"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/mapSubtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:paddingHorizontal="24dp"
+                android:textColor="@color/text_secondary"
+                android:textSize="16sp"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/stops"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginTop="12dp"
+                android:scrollbars="vertical" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="24dp"
+                android:paddingTop="16dp">
+
+                <ImageButton
+                    android:id="@+id/mapMic"
+                    style="@style/Widget.MidWayDerPleos.Mic"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:src="@drawable/ic_mic"
+                    android:scaleType="fitCenter"
+                    android:padding="17dp"
+                    android:contentDescription="@string/mic" />
+
+                <Button
+                    android:id="@+id/insert"
+                    style="@style/Widget.MidWayDerPleos.Primary"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="60dp"
+                    android:layout_marginStart="12dp"
+                    android:text="@string/send_navi"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/border" />
 
         <FrameLayout
             android:layout_width="0dp"
-            android:layout_weight="0.64"
+            android:layout_weight="0.6"
             android:layout_height="match_parent">
 
             <org.osmdroid.views.MapView
@@ -132,52 +208,22 @@
                 android:layout_gravity="bottom|end"
                 android:layout_marginEnd="6dp"
                 android:layout_marginBottom="2dp"
-                android:alpha="0.55"
+                android:alpha="0.7"
                 android:text="@string/map_note"
                 android:textColor="@color/text_muted"
                 android:textSize="8sp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="10dp"
-                android:paddingTop="8dp"
-                android:paddingBottom="22dp">
-
-                <Button
-                    android:id="@+id/mapMic"
-                    style="@style/Widget.MidWayDerPleos.MicRound"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:text="🎤"
-                    android:textSize="18sp"
-                    android:contentDescription="@string/mic" />
-
-                <Button
-                    android:id="@+id/insert"
-                    style="@style/Widget.MidWayDerPleos.Primary"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="48dp"
-                    android:layout_marginStart="8dp"
-                    android:maxLines="1"
-                    android:ellipsize="end" />
-            </LinearLayout>
         </FrameLayout>
     </LinearLayout>
 
-    <!-- 처음부터: 모든 화면 우상단 아이콘. 목적지 단계에서는 숨긴다. -->
+    <!-- 처음부터: 오른쪽 위, 아이콘 + 글자. 목적지 단계에서는 숨긴다. -->
     <Button
         android:id="@+id/restartIcon"
-        style="@style/Widget.MidWayDerPleos.IconRound"
-        android:layout_width="42dp"
-        android:layout_height="42dp"
+        style="@style/Widget.MidWayDerPleos.TextAction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_gravity="top|end"
-        android:layout_margin="10dp"
-        android:text="↺"
-        android:contentDescription="@string/restart"
+        android:layout_margin="12dp"
+        android:drawableStart="@drawable/ic_restart"
+        android:text="@string/restart"
         android:visibility="gone" />
 </FrameLayout>

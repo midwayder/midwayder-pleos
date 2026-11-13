@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 듣는 중(activated)에는 강조색 테두리를 더해 색 말고 모양으로도 상태를 보인다. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_activated="true">
         <shape android:shape="oval">
-            <solid android:color="@color/danger" />
+            <solid android:color="@color/accent_soft" />
+            <stroke android:width="3dp" android:color="@color/accent" />
         </shape>
     </item>
     <item>
         <shape android:shape="oval">
-            <solid android:color="@color/accent_strong" />
+            <solid android:color="@color/accent_soft" />
         </shape>
     </item>
 </selector>

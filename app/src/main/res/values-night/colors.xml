@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 다크(밤). 시스템 야간 모드를 따른다. 짙은 회색 면, 회색 글씨 위계, 강조는 밝은 파랑 하나. -->
+    <color name="background">#202124</color>
+    <color name="surface">#292B2F</color>
+    <color name="text">#F2F3F4</color>
+    <color name="text_secondary">#A5ABB2</color>
+    <color name="text_muted">#A5ABB2</color>
+    <color name="accent">#78B7FF</color>
+    <color name="accent_soft">#2B3A4F</color>
+    <color name="row_selected">#2F3A47</color>
+    <color name="border">#41454B</color>
+    <color name="button_primary">#F2F3F4</color>
+    <color name="on_button_primary">#17191C</color>
+    <color name="route">#78B7FF</color>
+    <color name="pin_selected">#F2F3F4</color>
+    <color name="on_pin_selected">#17191C</color>
+    <color name="pin_other">#7B8188</color>
+    <color name="pin_origin">#78B7FF</color>
+    <color name="pin_destination">#E75243</color>
+</resources>

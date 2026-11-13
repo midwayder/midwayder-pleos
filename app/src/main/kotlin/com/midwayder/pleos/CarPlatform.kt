@@ -16,9 +16,6 @@ interface CarPlatform {
     /** 화면 부제에 보여 주는 한 줄 설명. 어떤 경로로 동작 중인지 숨기지 않는다. */
     val description: String
 
-    /** 경유지 확정 버튼 문구. */
-    val waypointActionLabel: String
-
     /** 표준 위치·마이크 외에 실행 중 요청할 플랫폼 권한. */
     val extraPermissions: List<String> get() = emptyList()
 

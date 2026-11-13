@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 납작한 목록: 아래 얇은 구분선. 선택된 행은 옅은 강조 배경 + 왼쪽 막대(굵은 글씨는 어댑터). -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_selected="true">
-        <shape android:shape="rectangle">
-            <solid android:color="@color/accent_strong" />
-            <corners android:radius="12dp" />
-            <stroke android:width="2dp" android:color="@color/accent" />
-        </shape>
+        <layer-list>
+            <item><shape><solid android:color="@color/row_selected" /></shape></item>
+            <item android:width="4dp" android:gravity="start"><shape><solid android:color="@color/accent" /></shape></item>
+            <item android:height="1dp" android:gravity="bottom"><shape><solid android:color="@color/border" /></shape></item>
+        </layer-list>
     </item>
     <item>
-        <shape android:shape="rectangle">
-            <solid android:color="@color/surface" />
-            <corners android:radius="12dp" />
-        </shape>
+        <layer-list>
+            <item android:height="1dp" android:gravity="bottom"><shape><solid android:color="@color/border" /></shape></item>
+        </layer-list>
     </item>
 </selector>

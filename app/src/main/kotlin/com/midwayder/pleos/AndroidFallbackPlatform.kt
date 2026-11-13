@@ -35,7 +35,6 @@ import kotlin.coroutines.resume
  */
 class AndroidFallbackPlatform(private val context: Context) : CarPlatform {
     override val description = "Android 폴백 · 기기 GPS · Android 음성 인식(ko-KR) · 내비 앱 연결"
-    override val waypointActionLabel = "내비 앱으로 보내기"
 
     private var recognizer: SpeechRecognizer? = null
     private var cancelling = false

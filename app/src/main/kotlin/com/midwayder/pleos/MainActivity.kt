@@ -37,6 +37,7 @@ class MainActivity : AppCompatActivity() {
     private var candidates: List<Place> = emptyList()
     private var result: SearchResult? = null
     private var selected = -1
+    private var keyword = ""
     private var listening = false
     private var retried = false
     private var job: Job? = null
@@ -66,7 +67,6 @@ class MainActivity : AppCompatActivity() {
         listOf(binding.mic, binding.listMic, binding.mapMic).forEach { it.setOnClickListener { toggleListening() } }
         binding.restartIcon.setOnClickListener { restart() }
         binding.insert.setOnClickListener { insertSelected() }
-        binding.insert.text = platform.waypointActionLabel
         readDebugSpeech(intent)
 
         val missing = (listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.RECORD_AUDIO) + platform.extraPermissions)
@@ -255,6 +255,7 @@ class MainActivity : AppCompatActivity() {
             runCatching { api.search(from, dest, k) }
                 .onSuccess { found ->
                     result = found
+                    keyword = k
                     if (found.stops.isEmpty()) {
                         prompt("경유지를 말해주세요", "‘$k’ 경유지를 찾지 못했어요. 다른 이름이나 종류를 말해 주세요.")
                         return@onSuccess
@@ -269,6 +270,7 @@ class MainActivity : AppCompatActivity() {
     private fun showMap() {
         val found = result ?: return
         show(Step.MAP)
+        binding.mapSubtitle.text = "${destination?.label.orEmpty()}까지 가는 길 · $keyword"
         pick(0, announce = false)
         val top = found.stops.take(3).mapIndexed { i, s -> "${i + 1}번 ${s.name}, ${s.speechText(found.tier)}" }
         speakThenListen("가장 효율적인 곳은 ${top.joinToString(". ")}. 번호를 말하거나, 보내 줘라고 말해 주세요.")
@@ -280,7 +282,7 @@ class MainActivity : AppCompatActivity() {
         val dest = destination ?: return
         val stop = found.stops.getOrNull(index) ?: return
         selected = index
-        stopAdapter.submit(found.stops.mapIndexed { i, s -> Row(s.name, s.shortCost(found.tier), rank = i + 1, selected = i == index) })
+        stopAdapter.submit(found.stops.mapIndexed { i, s -> Row(s.name, "", rank = i + 1, selected = i == index, cost = s.shortCost(found.tier)) })
         binding.stops.scrollToPosition(index)
         routeMap.showResult(from, dest, found, index)
         if (announce) speakThenListen("${index + 1}번 ${stop.name}. 보내 줘라고 말하면 내비로 보내요.")
@@ -326,8 +328,9 @@ class MainActivity : AppCompatActivity() {
         listening = active
         listOf(binding.mic, binding.listMic, binding.mapMic).forEach {
             it.isActivated = active
-            it.text = if (active) "■" else "🎤"
+            it.setImageResource(if (active) R.drawable.ic_mic_listening else R.drawable.ic_mic)
         }
+        binding.listenState.visibility = if (active) View.VISIBLE else View.INVISIBLE
     }
 
     /** 인식된 말은 말하기 화면에서만 보여 준다. 목록·지도 화면은 선택 결과 자체가 피드백이다. */

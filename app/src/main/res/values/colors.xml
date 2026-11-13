@@ -1,18 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- src/constants/theme.ts 의 다크 토큰 -->
-    <color name="background">#141416</color>
-    <color name="surface">#1D1E22</color>
-    <color name="surface_elevated">#26272C</color>
-    <color name="surface_muted">#2C2E34</color>
-    <color name="text">#F4F3F0</color>
-    <color name="text_secondary">#C6C5C0</color>
-    <color name="text_muted">#A7A6A0</color>
-    <color name="accent">#8FA8FF</color>
-    <color name="accent_strong">#2E55E0</color>
-    <color name="accent_soft">#263259</color>
-    <color name="on_accent">#FFFFFF</color>
-    <color name="border">#3A3C44</color>
-    <color name="danger">#E06060</color>
+    <!-- 밝은 화면(낮). Pleos 내비처럼 흰·옅은 회색 면, 검정·회색 글씨, 파랑은 선택·현재 위치·듣는 중에만. 밤은 values-night. -->
+    <color name="background">#F5F6F7</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="text">#17191C</color>
+    <color name="text_secondary">#5E636A</color>
+    <color name="text_muted">#6B7077</color>
+    <color name="accent">#1769D2</color>
+    <color name="accent_soft">#E8F0FB</color>
+    <color name="row_selected">#EEF3FB</color>
+    <color name="border">#E1E4E8</color>
+    <color name="button_primary">#17191C</color>
+    <color name="on_button_primary">#FFFFFF</color>
+    <!-- 지도: 경로·핀 -->
+    <color name="route">#E84A3C</color>
+    <color name="pin_selected">#17191C</color>
+    <color name="on_pin_selected">#FFFFFF</color>
+    <color name="pin_other">#8A9097</color>
+    <color name="pin_origin">#1769D2</color>
+    <color name="pin_destination">#E84A3C</color>
     <color name="ic_launcher_background">#245BDB</color>
 </resources>
