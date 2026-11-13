@@ -9,9 +9,6 @@ val apiOrigin = (project.findProperty("midwayder.apiOrigin") as String?)?.trim()
     ?: "https://midwayder.up.railway.app"
 // 시연 영상용 고정 출발지 "lat,lng,라벨". 비우면 기기 위치를 쓴다. 화면 라벨에 "데모 고정"이 붙는다.
 val demoOrigin = (project.findProperty("midwayder.demoOrigin") as String?)?.trim().orEmpty()
-// 공모전 시연 전용 검색 비밀값. 서버 CONTEST_ACCESS_TOKEN 과 같아야 한다. 저장소에 커밋하지 말고 -P 나 ~/.gradle/gradle.properties 로만 넣는다.
-// 비우면 일반 검색 경로(/api/search)를 쓴다.
-val contestToken = (project.findProperty("midwayder.contestToken") as String?)?.trim().orEmpty()
 
 android {
     namespace = "com.midwayder.pleos"
@@ -25,7 +22,6 @@ android {
         versionName = "0.1.0"
         buildConfigField("String", "API_ORIGIN", "\"$apiOrigin\"")
         buildConfigField("String", "DEMO_ORIGIN", "\"$demoOrigin\"")
-        buildConfigField("String", "CONTEST_TOKEN", "\"$contestToken\"")
     }
 
     buildFeatures {
