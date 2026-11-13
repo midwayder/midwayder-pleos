@@ -13,7 +13,7 @@ class ApiException(val code: String, message: String) : Exception(message)
  * MidWayDer 검색 서버 클라이언트. Kakao 키는 서버에만 있고 앱은 공개 API 두 개만 부른다.
  * 요청 형식은 tools/carplay-preview/Sources/APIClient.swift 와 같다.
  */
-class MidWayDerApi(origin: String = BuildConfig.API_ORIGIN) {
+class MidWayDerApi(origin: String = BuildConfig.API_ORIGIN, private val contestToken: String = BuildConfig.CONTEST_TOKEN) {
     private val origin = origin.trimEnd('/')
 
     /** 목적지 후보 조회. 한국 밖 좌표는 버린다. */
@@ -38,7 +38,9 @@ class MidWayDerApi(origin: String = BuildConfig.API_ORIGIN) {
             .put("keyword", k)
             .put("mode", "car")
         tier?.let { body.put("tier", it) }
-        val result = SearchResult.from(JSONObject(post("api/search", body)))
+        // 공모전 비밀값이 있으면 시연 전용 경로(항상 정밀 추천)로, 없으면 일반 경로로 보낸다.
+        val response = if (contestToken.isNotBlank()) post("api/contest-search", body, mapOf(CONTEST_HEADER to contestToken)) else post("api/search", body)
+        val result = SearchResult.from(JSONObject(response))
         val valid = result.hasValidOrder && result.durationS >= 0 && result.distanceM >= 0 &&
             result.polyline.all { it.isKorean } &&
             result.stops.all { it.id.isNotBlank() && it.name.isNotBlank() && it.coordinate.isKorean && it.extraDurationS >= 0 && it.extraDistanceM >= 0 }
@@ -46,7 +48,7 @@ class MidWayDerApi(origin: String = BuildConfig.API_ORIGIN) {
         result
     }
 
-    private fun post(path: String, body: JSONObject): String {
+    private fun post(path: String, body: JSONObject, headers: Map<String, String> = emptyMap()): String {
         val connection = (URL("$origin/$path").openConnection() as HttpURLConnection).apply {
             requestMethod = "POST"
             connectTimeout = 15_000
@@ -54,6 +56,7 @@ class MidWayDerApi(origin: String = BuildConfig.API_ORIGIN) {
             doOutput = true
             setRequestProperty("Content-Type", "application/json")
             setRequestProperty("Accept", "application/json")
+            headers.forEach { (name, value) -> setRequestProperty(name, value) }
         }
         try {
             connection.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
@@ -71,5 +74,9 @@ class MidWayDerApi(origin: String = BuildConfig.API_ORIGIN) {
         } finally {
             connection.disconnect()
         }
+    }
+
+    private companion object {
+        const val CONTEST_HEADER = "X-MidWayDer-Contest"
     }
 }

@@ -56,6 +56,7 @@ ANDROID_HOME="$HOME/Library/Android/sdk" ./gradlew :app:assembleDebug
 ```
 
 - 검색 서버는 기본 `https://midwayder.up.railway.app`. 바꾸려면 `-Pmidwayder.apiOrigin=https://...` (에뮬레이터에서 로컬 서버는 `http://10.0.2.2:3000`, 단 cleartext 는 manifest 에서 막혀 있다).
+- 공모전 시연 빌드: `-Pmidwayder.contestToken=<서버 CONTEST_ACCESS_TOKEN 값>` 을 주면 경유지 검색을 공모전 전용 경로(`/api/contest-search`, 비회원 체험 횟수 없이 항상 정밀 추천)로 보낸다. 비밀값은 커밋하지 않는다. 비우면 일반 `/api/search` 를 쓴다.
 - 시연 영상용 고정 출발지: `-Pmidwayder.demoOrigin="37.5547,126.9707,서울역"`. 기기 위치 대신 이 좌표를 쓰고 라벨에 "데모 고정 출발지"가 붙는다. 집 위치가 영상에 드러나지 않게 하려는 용도다.
 - `assembleRelease` 도 로컬 debug 인증서로 서명한다. 스토어 배포 서명이 아니다.
 - 첫 실행에서 위치·마이크 권한을 묻는다. 권한 요청은 앱 안에서만 하고, 음성 인식은 마이크 버튼을 눌렀을 때만 시작한다.
