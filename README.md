@@ -2,7 +2,7 @@
 
 **가는 길에 들르기 가장 편한 경유지를, 추가 운전시간이 적은 순서로 찾아 차량 내비에 바로 넣어 주는 차량용 앱.**
 
-현대자동차그룹 차량용 앱 개발 공모전 출품작입니다. 팀명 `미드웨이더`, 앱 이름 `MidWayDer`.
+현대자동차그룹 차량용 앱 개발 공모전 출품작입니다. 팀명 `MidWayDer`, 앱 이름 `MidWayDer`.
 
 운전 중 "강남역 가는 길에 다이소 들르고 싶다"고 할 때, 지금 위치에서 가장 가까운 곳이 아니라
 **경로에서 덜 벗어나 시간이 가장 적게 더 드는 곳**을 1순위로 보여 줍니다. 고른 곳은 NaviHelper SDK 로
@@ -10,7 +10,7 @@ Pleos 내비에 경유지로 넘어가고, 길안내는 차량 내비가 맡습�
 
 ## APK 위치
 
-[`apk/미드웨이더_MidWayDer_release.apk`](apk/미드웨이더_MidWayDer_release.apk) (release 빌드, 약 40MB, ABI arm64-v8a · x86_64)
+[`apk/MidWayDer_MidWayDer_release.apk`](apk/MidWayDer_MidWayDer_release.apk) (release 빌드, 약 40MB, ABI arm64-v8a · x86_64)
 
 ## 테스트 환경
 
@@ -31,7 +31,7 @@ Pleos 내비에 경유지로 넘어가고, 길안내는 차량 내비가 맡습�
 adb emu geo fix 127.1112 37.3948
 
 # 2) 권한(-g)을 미리 허용하며 설치
-adb install -r -g "apk/미드웨이더_MidWayDer_release.apk"
+adb install -r -g "apk/MidWayDer_MidWayDer_release.apk"
 
 # 3) 실행 (앱 서랍의 MidWayDer 아이콘으로 실행해도 됩니다)
 adb shell am start -n com.midwayder.pleos/.MainActivity
