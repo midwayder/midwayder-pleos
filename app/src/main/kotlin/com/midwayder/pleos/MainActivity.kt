@@ -154,6 +154,8 @@ class MainActivity : AppCompatActivity() {
         val at = step
         setListening(true)
         debugSpeech.removeFirstOrNull()?.let { fake ->
+            // "_" 는 이 단계를 말 대신 화면 터치로 넘긴다는 뜻(시연 녹화용).
+            if (fake == "_") { setListening(false); return }
             binding.root.postDelayed({
                 if (step != at) return@postDelayed
                 setListening(false)
