@@ -22,6 +22,8 @@ android {
         versionName = "0.1.0"
         buildConfigField("String", "API_ORIGIN", "\"$apiOrigin\"")
         buildConfigField("String", "DEMO_ORIGIN", "\"$demoOrigin\"")
+        // MapLibre 네이티브 엔진이 CPU 종류마다 약 13MB. 차량(arm64)과 PC 에뮬레이터(x86_64)만 남긴다.
+        ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
     }
 
     buildFeatures {
