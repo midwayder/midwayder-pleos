@@ -28,7 +28,7 @@
 | `AndroidFallbackPlatform.kt` | 일반 Android 기기 구현. LocationManager(GPS/네트워크), SpeechRecognizer(ko-KR), TextToSpeech, 네이버지도·티맵 URL → 없으면 카카오맵 웹 |
 | `PleosPlatform.kt` | Pleos Connect 구현. FusedLocation(위치)·NaviHelper(경유지+목적지 경로 요청). 음성은 폴백의 Android 표준 API 를 그대로 쓴다. Pleos 내비 서비스(`ai.pleos.playground.service.navi`)가 있는 기기에서만 선택된다 |
 | `MidWayDerApi.kt`, `Models.kt` | 서버 계약(CarPlay Swift 프로토타입과 동일). 서버가 준 순서를 재정렬하지 않는다 |
-| `RouteMap.kt` | osmdroid 지도에 경로 폴리라인·A/B·후보 마커를 그린다(야간 톤) |
+| `RouteMap.kt` | MapLibre(OpenFreeMap 벡터 타일, Pleos 내비 톤 스타일 `assets/map/pleos-*.json`) 지도에 경로·출발/도착·후보 마커를 그린다(낮/밤 자동) |
 
 ### Pleos SDK 매핑
 

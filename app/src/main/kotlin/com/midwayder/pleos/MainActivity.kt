@@ -13,8 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.midwayder.pleos.databinding.ActivityMainBinding
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import org.osmdroid.config.Configuration
-import java.io.File
+import org.maplibre.android.MapLibre
 
 /**
  * 음성만으로 진행하는 차량 화면. 설명 문구 없이 질문 한 줄·인식된 말·조작 버튼만 둔다.
@@ -50,13 +49,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Configuration.getInstance().apply {
-            userAgentValue = packageName
-            osmdroidBasePath = File(cacheDir, "osmdroid")
-            osmdroidTileCache = File(cacheDir, "osmdroid/tiles")
-        }
+        MapLibre.getInstance(this)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.map.onCreate(savedInstanceState)
 
         platform = CarPlatforms.create(this)
         routeMap = RouteMap(binding.map)
@@ -87,13 +83,17 @@ class MainActivity : AppCompatActivity() {
         return lines.isNotEmpty()
     }
 
+    override fun onStart() { super.onStart(); binding.map.onStart() }
     override fun onResume() { super.onResume(); binding.map.onResume() }
     override fun onPause() { super.onPause(); binding.map.onPause() }
+    override fun onStop() { super.onStop(); binding.map.onStop() }
+    override fun onLowMemory() { super.onLowMemory(); binding.map.onLowMemory() }
+    override fun onSaveInstanceState(outState: Bundle) { super.onSaveInstanceState(outState); binding.map.onSaveInstanceState(outState) }
     override fun onDestroy() {
         job?.cancel()
         locationJob?.cancel()
         platform.release()
-        binding.map.onDetach()
+        binding.map.onDestroy()
         super.onDestroy()
     }
 

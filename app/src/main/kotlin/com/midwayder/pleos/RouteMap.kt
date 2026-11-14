@@ -4,30 +4,44 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.ColorMatrix
-import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
 import android.graphics.Path
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import androidx.core.content.ContextCompat
-import androidx.core.view.doOnLayout
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
-import org.osmdroid.util.BoundingBox
-import org.osmdroid.views.CustomZoomButtonsController
-import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.Marker
-import org.osmdroid.views.overlay.Polyline
-import org.osmdroid.util.GeoPoint as OsmPoint
+import org.maplibre.android.camera.CameraPosition
+import org.maplibre.android.camera.CameraUpdateFactory
+import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.geometry.LatLngBounds
+import org.maplibre.android.maps.MapView
+import org.maplibre.android.maps.MapLibreMap
+import org.maplibre.android.maps.Style
+import org.maplibre.android.style.expressions.Expression.get
+import org.maplibre.android.style.layers.LineLayer
+import org.maplibre.android.style.layers.Property
+import org.maplibre.android.style.layers.PropertyFactory.iconAllowOverlap
+import org.maplibre.android.style.layers.PropertyFactory.iconAnchor
+import org.maplibre.android.style.layers.PropertyFactory.iconIgnorePlacement
+import org.maplibre.android.style.layers.PropertyFactory.iconImage
+import org.maplibre.android.style.layers.PropertyFactory.lineCap
+import org.maplibre.android.style.layers.PropertyFactory.lineColor
+import org.maplibre.android.style.layers.PropertyFactory.lineJoin
+import org.maplibre.android.style.layers.PropertyFactory.lineWidth
+import org.maplibre.android.style.layers.PropertyFactory.symbolSortKey
+import org.maplibre.android.style.layers.SymbolLayer
+import org.maplibre.android.style.sources.GeoJsonSource
+import org.maplibre.geojson.Feature
+import org.maplibre.geojson.FeatureCollection
+import org.maplibre.geojson.LineString
+import org.maplibre.geojson.Point
 
 /**
- * 서버 응답(경로 폴리라인·출발·목적지·후보)을 osmdroid 지도에 그린다. 지도는 표시용이며 경로 계산은 서버가 한다.
- * 밝은 화면은 타일 채도를 낮추고, 다크(시스템 야간 모드)는 타일을 반전·탈색한다. 경로·핀 색은 values / values-night.
+ * 서버 응답(경로 폴리라인·출발·목적지·후보)을 지도에 그린다. 지도는 표시용이며 경로 계산은 서버가 한다.
+ * 바탕 지도는 OpenFreeMap 벡터 타일에 Pleos 내비 톤(연회색 바탕·푸른 회색 도로) 스타일을 입힌 것이다(assets/map).
+ * 다크(시스템 야간 모드)는 다크 스타일을 쓴다. 경로·핀 색은 values / values-night.
  */
-class RouteMap(private val map: MapView) {
-    private val density = map.resources.displayMetrics.density
-    private val night = (map.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-    private fun color(id: Int) = ContextCompat.getColor(map.context, id)
+class RouteMap(private val view: MapView) {
+    private val density = view.resources.displayMetrics.density
+    private val night = (view.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+    private fun color(id: Int) = ContextCompat.getColor(view.context, id)
     private val routeColor = color(R.color.route)
     private val selectedColor = color(R.color.pin_selected)
     private val onSelectedColor = color(R.color.on_pin_selected)
@@ -35,13 +49,40 @@ class RouteMap(private val map: MapView) {
     private val originColor = color(R.color.pin_origin)
     private val destinationColor = color(R.color.pin_destination)
 
+    private var map: MapLibreMap? = null
+    private var style: Style? = null
+    /** 스타일이 아직 안 읽혔을 때 들어온 마지막 그리기 요청. 준비되면 한 번 그린다. */
+    private var pending: (() -> Unit)? = null
+
     init {
-        map.setTileSource(TileSourceFactory.MAPNIK)
-        map.setMultiTouchControls(true)
-        map.zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
-        map.overlayManager.tilesOverlay.setColorFilter(if (night) nightFilter() else dayFilter())
-        map.controller.setZoom(11.5)
-        map.controller.setCenter(OsmPoint(37.5665, 126.9780))
+        val json = view.context.assets.open(if (night) "map/pleos-dark.json" else "map/pleos-light.json").bufferedReader().use { it.readText() }
+        view.getMapAsync { m ->
+            m.uiSettings.apply {
+                isCompassEnabled = false
+                isRotateGesturesEnabled = false
+                isTiltGesturesEnabled = false
+                isLogoEnabled = false
+                isAttributionEnabled = false // 출처는 레이아웃의 mapNote 로 표기한다
+            }
+            m.cameraPosition = CameraPosition.Builder().target(LatLng(37.5665, 126.9780)).zoom(10.5).build()
+            m.setStyle(Style.Builder().fromJson(json)) { s ->
+                s.addSource(GeoJsonSource(ROUTE))
+                s.addSource(GeoJsonSource(PINS))
+                // 바탕색 테두리 위에 경로를 그려 도로보다 확실히 튀게 한다.
+                s.addLayer(LineLayer("route-casing", ROUTE).withProperties(
+                    lineColor(if (night) Color.parseColor("#202124") else Color.WHITE), lineWidth(9f),
+                    lineCap(Property.LINE_CAP_ROUND), lineJoin(Property.LINE_JOIN_ROUND)))
+                s.addLayer(LineLayer("route", ROUTE).withProperties(
+                    lineColor(routeColor), lineWidth(6f), lineCap(Property.LINE_CAP_ROUND), lineJoin(Property.LINE_JOIN_ROUND)))
+                s.addLayer(SymbolLayer("pins", PINS).withProperties(
+                    iconImage(get("icon")), iconAnchor(get("anchor")), symbolSortKey(get("order")),
+                    iconAllowOverlap(true), iconIgnorePlacement(true)))
+                map = m
+                style = s
+                pending?.invoke()
+                pending = null
+            }
+        }
     }
 
     fun showOrigin(origin: Place) = draw(listOf(origin), null, emptyList(), -1)
@@ -52,54 +93,51 @@ class RouteMap(private val map: MapView) {
         draw(listOf(origin, destination), result.polyline, result.stops, selected)
 
     private fun draw(ends: List<Place>, polyline: List<GeoPoint>?, stops: List<Stop>, selected: Int) {
-        map.overlays.clear()
-        val points = mutableListOf<OsmPoint>()
-        polyline?.takeIf { it.size >= 2 }?.let { line ->
-            // 흰(다크는 바탕색) 테두리 위에 경로를 그려 지도 글자·도로보다 확실히 튀게 한다.
-            map.overlays.add(routeLine(line, if (night) Color.parseColor("#202124") else Color.WHITE, 9f))
-            map.overlays.add(routeLine(line, routeColor, 6f))
-            points += line.map { it.osm() }
+        val m = map
+        val s = style
+        if (m == null || s == null) {
+            pending = { draw(ends, polyline, stops, selected) }
+            return
         }
-        // 뒤에 추가한 overlay 가 위에 그려진다: 나머지 후보 → 출발·목적지 → 선택한 후보 순.
+        val points = mutableListOf<LatLng>()
+        val line = polyline?.takeIf { it.size >= 2 }
+        s.getSourceAs<GeoJsonSource>(ROUTE)?.setGeoJson(
+            if (line == null) FeatureCollection.fromFeatures(emptyList())
+            else FeatureCollection.fromFeature(Feature.fromGeometry(LineString.fromLngLats(line.map { Point.fromLngLat(it.lng, it.lat) }))))
+        line?.let { l -> points += l.map { LatLng(it.lat, it.lng) } }
+
+        // order 가 클수록 위에 그린다: 나머지 후보 → 출발·목적지 → 선택한 후보 순.
+        val features = mutableListOf<Feature>()
+        fun add(point: GeoPoint, icon: String, bitmap: () -> Bitmap, bottom: Boolean, order: Int) {
+            if (s.getImage(icon) == null) s.addImage(icon, bitmap())
+            features += Feature.fromGeometry(Point.fromLngLat(point.lng, point.lat)).apply {
+                addStringProperty("icon", icon)
+                addStringProperty("anchor", if (bottom) Property.ICON_ANCHOR_BOTTOM else Property.ICON_ANCHOR_CENTER)
+                addNumberProperty("order", order)
+            }
+            points += LatLng(point.lat, point.lng)
+        }
         stops.forEachIndexed { index, stop ->
-            if (index != selected) map.overlays.add(marker(stop.coordinate, pin("${index + 1}", otherColor, Color.WHITE, 30), bottom = true))
-            points += stop.coordinate.osm()
+            if (index != selected) add(stop.coordinate, "other-${index + 1}", { pin("${index + 1}", otherColor, Color.WHITE, 30) }, true, 1)
+            else add(stop.coordinate, "selected-${index + 1}", { pin("${index + 1}", selectedColor, onSelectedColor, 42) }, true, 3)
         }
         ends.forEachIndexed { index, place ->
-            map.overlays.add(if (index == 0) marker(place.coordinate, originDot(), bottom = false)
-                else marker(place.coordinate, pin("", destinationColor, Color.WHITE, 36, flag = true), bottom = true))
-            points += place.coordinate.osm()
+            if (index == 0) add(place.coordinate, "origin", { originDot() }, false, 2)
+            else add(place.coordinate, "destination", { pin("", destinationColor, Color.WHITE, 36, flag = true) }, true, 2)
         }
-        stops.getOrNull(selected)?.let { map.overlays.add(marker(it.coordinate, pin("${selected + 1}", selectedColor, onSelectedColor, 42), bottom = true)) }
-        map.invalidate()
+        s.getSourceAs<GeoJsonSource>(PINS)?.setGeoJson(FeatureCollection.fromFeatures(features))
+
         // 지도 화면이 막 보이기 시작한 때는 크기가 0 이라 범위 계산이 틀어진다. 레이아웃이 끝난 뒤 맞춘다.
-        map.doOnLayout {
+        view.post {
             when {
-                // 위 요약 카드·아래 버튼 바가 지도를 덮으므로 여백을 크게 둔다.
-                points.size >= 2 -> map.zoomToBoundingBox(BoundingBox.fromGeoPointsSafe(points).increaseByScale(1.1f), false, (96 * density).toInt())
-                points.size == 1 -> map.controller.animateTo(points[0], 14.5, 700L)
+                points.size >= 2 -> m.moveCamera(CameraUpdateFactory.newLatLngBounds(LatLngBounds.Builder().includes(points).build(), (64 * density).toInt()))
+                points.size == 1 -> m.animateCamera(CameraUpdateFactory.newLatLngZoom(points[0], 14.5), 700)
             }
         }
     }
 
-    private fun routeLine(line: List<GeoPoint>, color: Int, widthDp: Float) = Polyline(map).apply {
-        setPoints(line.map { it.osm() })
-        outlinePaint.color = color
-        outlinePaint.strokeWidth = widthDp * density
-        outlinePaint.strokeCap = Paint.Cap.ROUND
-        outlinePaint.strokeJoin = Paint.Join.ROUND
-    }
-
-    /** bottom=true 면 핀 끝이 좌표를 가리키게, false 면 가운데를 맞춘다. */
-    private fun marker(point: GeoPoint, drawable: Drawable, bottom: Boolean): Marker = Marker(map).apply {
-        position = point.osm()
-        setAnchor(Marker.ANCHOR_CENTER, if (bottom) Marker.ANCHOR_BOTTOM else Marker.ANCHOR_CENTER)
-        icon = drawable
-        setInfoWindow(null)
-    }
-
     /** 물방울 핀(흰 테두리). 순위 번호 또는 목적지 깃발을 넣는다. */
-    private fun pin(text: String, fillColor: Int, labelColor: Int, sizeDp: Int, flag: Boolean = false): Drawable {
+    private fun pin(text: String, fillColor: Int, labelColor: Int, sizeDp: Int, flag: Boolean = false): Bitmap {
         val w = (sizeDp * density).toInt()
         val h = (w * 1.3f).toInt()
         val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
@@ -132,11 +170,11 @@ class RouteMap(private val map: MapView) {
             ink.isFakeBoldText = true
             canvas.drawText(text, cx, cy - (ink.descent() + ink.ascent()) / 2, ink)
         }
-        return BitmapDrawable(map.resources, bitmap)
+        return bitmap
     }
 
     /** 출발(현재 위치): Pleos 내비처럼 파란 원 + 흰 테두리 + 흰 화살표. */
-    private fun originDot(): Drawable {
+    private fun originDot(): Bitmap {
         val size = (30 * density).toInt()
         val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -147,29 +185,11 @@ class RouteMap(private val map: MapView) {
         canvas.drawPath(Path().apply {
             moveTo(c, c - a * 1.1f); lineTo(c + a * 0.8f, c + a); lineTo(c, c + a * 0.45f); lineTo(c - a * 0.8f, c + a); close()
         }, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE })
-        return BitmapDrawable(map.resources, bitmap)
+        return bitmap
     }
 
-    /** 밝은 화면: OSM 기본 타일의 채도를 낮춰 글자·아이콘이 경로보다 튀지 않게 한다. */
-    private fun dayFilter() = ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(0.35f) })
-
-    /** 다크: 밝은 OSM 타일을 반전·탈색해 야간 차량 화면 톤으로 만든다. */
-    private fun nightFilter(): ColorMatrixColorFilter {
-        val invert = ColorMatrix(floatArrayOf(
-            -1f, 0f, 0f, 0f, 255f,
-            0f, -1f, 0f, 0f, 255f,
-            0f, 0f, -1f, 0f, 255f,
-            0f, 0f, 0f, 1f, 0f,
-        ))
-        val tone = ColorMatrix().apply { setSaturation(0.25f) }
-        val dim = ColorMatrix(floatArrayOf(
-            0.82f, 0f, 0f, 0f, 6f,
-            0f, 0.84f, 0f, 0f, 8f,
-            0f, 0f, 0.92f, 0f, 14f,
-            0f, 0f, 0f, 1f, 0f,
-        ))
-        return ColorMatrixColorFilter(ColorMatrix(invert).apply { postConcat(tone); postConcat(dim) })
+    private companion object {
+        const val ROUTE = "route-source"
+        const val PINS = "pin-source"
     }
-
-    private fun GeoPoint.osm() = OsmPoint(lat, lng)
 }

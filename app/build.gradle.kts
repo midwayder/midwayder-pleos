@@ -55,8 +55,8 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.4.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
-    // 지도 타일(OpenStreetMap). API 키 없이 쓰는 프로토타입용. 경로·마커는 서버 응답으로 그린다.
-    implementation("org.osmdroid:osmdroid-android:6.1.20")
+    // 지도: MapLibre + OpenFreeMap 벡터 타일(API 키 없음). 색은 assets/map/pleos-*.json 에서 Pleos 내비 톤으로 맞춘다.
+    implementation("org.maplibre.gl:android-sdk:11.13.1")
     // Pleos Connect SDK. Pleos 내비 서비스가 있는 기기에서만 PleosPlatform 이 선택된다.
     implementation("ai.pleos.playground:NaviHelper:3.0.5")
     implementation("ai.pleos.playground:FusedLocation:1.1.3")

@@ -6,17 +6,17 @@
     android:orientation="horizontal"
     android:gravity="center_vertical"
     android:background="@drawable/bg_row"
-    android:paddingStart="24dp"
-    android:paddingEnd="24dp"
-    android:paddingVertical="14dp"
-    android:minHeight="72dp">
+    android:paddingStart="@dimen/row_pad_h"
+    android:paddingEnd="@dimen/row_pad_h"
+    android:paddingVertical="@dimen/row_pad_v"
+    android:minHeight="@dimen/row_min_height">
 
     <TextView
         android:id="@+id/rank"
         android:layout_width="32dp"
         android:layout_height="wrap_content"
         android:textColor="@color/text_secondary"
-        android:textSize="24sp"
+        android:textSize="@dimen/row_rank_text"
         android:textStyle="bold" />
 
     <LinearLayout
@@ -31,7 +31,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/text"
-            android:textSize="22sp"
+            android:textSize="@dimen/row_title_text"
             android:maxLines="1"
             android:ellipsize="end" />
 
@@ -41,7 +41,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:textColor="@color/text_secondary"
-            android:textSize="17sp"
+            android:textSize="@dimen/row_detail_text"
             android:maxLines="1"
             android:ellipsize="end" />
     </LinearLayout>
@@ -53,7 +53,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:textColor="@color/text"
-        android:textSize="26sp"
+        android:textSize="@dimen/row_cost_text"
         android:textStyle="bold"
         android:maxLines="1"
         android:visibility="gone" />
